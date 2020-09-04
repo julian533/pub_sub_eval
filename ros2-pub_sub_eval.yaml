@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ros2-pub_sub_eval
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ros2-pub_sub_eval
+  template:
+    metadata:
+      labels:
+        app: ros2-pub_sub_eval
+    spec:
+      containers:
+      - image: naju1012/pub_sub_eval:latest
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
+        imagePullPolicy: IfNotPresent
+        name: ros2-pub_sub_eval
+      imagePullSecrets:
+      - name: docker-registry
+      nodeSelector:
+        location: lab2
+      restartPolicy: Always
