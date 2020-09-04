@@ -18,6 +18,8 @@ Within container:
 
 $ cd ~
 
+$ source /opt/ros/foxy/setup.bash
+
 $ colcon build --symlink-install
 
 $ source ./install/setup.bash
