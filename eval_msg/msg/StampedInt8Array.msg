@@ -1,2 +1,2 @@
-builtin_interfaces/Time stamp
+int64 stamp
 int8[] data

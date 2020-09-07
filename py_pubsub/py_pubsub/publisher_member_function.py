@@ -17,46 +17,44 @@ from rclpy.node import Node
 
 import numpy as np
 
-#from std_msgs.msg import Int8MultiArray
 from eval_msg.msg import StampedInt8Array
+
 
 class MinimalPublisher(Node):
 
-    def __init__(self):
-        super().__init__('minimal_publisher')
-        self.publisher_ = self.create_publisher(StampedInt8Array, 'topic', 10)
-        timer_period = 0.5  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.dim = 100
-        self.num_bytes = 4*self.dim*self.dim
+    def __init__(self, dim_start:int, dim_step:int, topic:str = "topic", timer_delay:float=0.5):
 
-    def timer_callback(self):
+        super().__init__("minimal_publisher")
+        
+        self.dim = dim_start
+        self.dim_step = dim_step
+
+        self.publisher = self.create_publisher(StampedInt8Array, topic, 10)
+        self.timer = self.create_timer(timer_delay, self.callback)
+
+    def callback(self):
+        
+        if self.dim >= 800:
+            self.timer.stop()
+
         msg = StampedInt8Array()
-        msg.data = np.random.randint(-127, 128, self.num_bytes, dtype=np.int8).tolist()
-        msg.stamp = self.get_clock().now().to_msg()
+        msg.data = np.random.randint(-127, 128, self.dim ** 2 * 4, dtype=np.int8).tolist()
+        msg.stamp = self.get_clock().now().nanoseconds
 
-        self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: "%s" KiB (dim = "%s")' % ((len(msg.data) / 2**10), self.dim))
-        self.dim += 50
-        self.num_bytes = 4*self.dim*self.dim
+        self.publisher.publish(msg)
 
-        if self.dim == 800:
-            self.destroy_node()
-            rclpy.shutdown()
+        self.get_logger().info(f"Published: {len(msg.data) / 2 ** 10} KiB (dim = {self.dim})")
 
+        self.dim += self.dim_step
+
+
+#if __name__ == '__main__':
 def main(args=None):
     rclpy.init(args=args)
 
-    minimal_publisher = MinimalPublisher()
+    minimal_publisher = MinimalPublisher(100, 50)
 
     rclpy.spin(minimal_publisher)
 
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    minimal_publisher.destroy_node()
+    # minimal_publisher.destroy_node()
     rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()

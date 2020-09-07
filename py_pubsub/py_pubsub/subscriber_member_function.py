@@ -15,26 +15,26 @@
 import rclpy
 from rclpy.node import Node
 
-#from std_msgs.msg import ByteMultiArray
-#from std_msgs.msg import Int8MultiArray
-#from std_msgs.msg import String
 from eval_msg.msg import StampedInt8Array
 
 
 class MinimalSubscriber(Node):
 
-    def __init__(self):
-        super().__init__('minimal_subscriber')
+    def __init__(self, topic:str = "topic"):
+
+        super().__init__("minimal_subscriber")
+
         self.subscription = self.create_subscription(
-            StampedInt8Array,
-            'topic',
-            self.listener_callback,
-            10)
-        self.subscription  # prevent unused variable warning
+            StampedInt8Array, topic, self.callback, 10)
 
-    def listener_callback(self, msg):
-        self.get_logger().info('["%s"] I received: "%s" KiB' % (msg.stamp, len(msg.data) / 2**10))
+    def callback(self, msg):
+        
+        diff = (self.get_clock().now().nanoseconds - msg.stamp) / 1e6
+        
+        self.get_logger().info(f"[{msg.stamp}] Received: {len(msg.data) / 2 ** 10} KiB in {diff:.3f} ms" )
 
+
+#if __name__ == '__main__':
 def main(args=None):
     rclpy.init(args=args)
 
@@ -42,12 +42,5 @@ def main(args=None):
 
     rclpy.spin(minimal_subscriber)
 
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    minimal_subscriber.destroy_node()
+    # minimal_subscriber.destroy_node()
     rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()
